@@ -286,15 +286,9 @@ window.app = new Vue({
 
     layout() {
       return {
-        title: 'Trajectory of COVID-19 '
-          + this.selectedData
-          + ' ('
-          + this.formatDate(this.dates[this.dates.length - 1])
-          + ')',
         showlegend: false,
         autorange: false,
         xaxis: {
-          title: 'Total ' + this.selectedData,
           type: 'linear',
           range: this.linearxrange,
           titlefont: {
@@ -303,7 +297,6 @@ window.app = new Vue({
           },
         },
         yaxis: {
-          title: 'New ' + this.selectedData + ' (in the Past Week)',
           type: 'linear',
           range: this.linearyrange,
           titlefont: {
@@ -316,6 +309,13 @@ window.app = new Vue({
           family: 'Open Sans, sans-serif',
           color: 'black',
           size: 14
+        },
+        margin: {
+          l: 40,
+          r: 0,
+          b: 20,
+          t: 0,
+          pad: 4
         }
       };
     },
