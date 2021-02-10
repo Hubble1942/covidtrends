@@ -48,27 +48,14 @@
               {{ d }}
             </option>
           </select>
-          <label for="selectedRegion">Select Region</label>
-          <select id="selectedRegion" v-model="selectedRegion">
-            <option v-for="s in regions" v-bind:value="s">
-              {{ s }}
-            </option>
-          </select>
 
         </div>
 
         <div class="countries">
 
-          <div class="buttonwrapper">
-            <button @click="deselectAll" aria-Label="Deselect All Regions">Deselect All</button>
-            <button @click="selectAll" aria-Label="Select All Regions">Select All</button>
-          </div>
-
-          <p style="padding-top: 1rem;">Showing {{regionType}} with at least {{minCasesInCountry}} {{selectedData}}</p>
-
           <ul>
             <li v-for="country in countries">
-              <input @change="createURL" type="checkbox" :id="country" :value="country" v-model="selectedCountries">
+              <input type="checkbox" :id="country" :value="country" v-model="selectedCountries">
               <label :for="country">{{country}}</label>
             </li>
           </ul>
