@@ -31,23 +31,26 @@
 
       <main id="main">
 
-        <graph v-if="covidData.length > 0 && countries.some(country => selectedCountries.includes(country))" :graph-data="graphData" :day="day" :resize="isHidden" v-bind.sync="graphAttributes"></graph>
+        <graph v-if="covidData.length > 0 && countries.some(country => selectedCountries.includes(country))"
+               :graph-data="graphData"
+               :day="dates.length"
+               v-bind.sync="graphAttributes"></graph>
 
-        <div v-if="!firstLoad && covidData.length === 0" class="nodata"><span>Not enough data for these parameters.</span></div>
-        <div v-if="!firstLoad && covidData.length !== 0 && !countries.some(country => selectedCountries.includes(country))" class="nodata"><span>Please select some {{regionType.toLowerCase()}} to display.</span></div>
+        <div v-if="!firstLoad && covidData.length === 0" class="nodata">
+          <span>Not enough data for these parameters.</span>
+        </div>
+        <div v-if="!firstLoad && covidData.length !== 0 && !countries.some(country => selectedCountries.includes(country))"
+             class="nodata">
+          <span>Please select some countries to display.</span>
+        </div>
 
       </main>
 
       <aside>
 
         <div>
-          <h2>Customize</h2>
-          <label for="selectedData">Select Parameter</label>
-          <select id="selectedData" v-model="selectedData">
-            <option v-for="d in dataTypes" v-bind:value="d">
-              {{ d }}
-            </option>
-          </select>
+          <input type="checkbox" :id="deaths" v-model="deaths">
+          <label :for="deaths">Deaths</label>
 
         </div>
 

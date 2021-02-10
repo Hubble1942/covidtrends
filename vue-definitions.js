@@ -12,6 +12,8 @@ const countriesOfInterest = [
   ['United Kingdom', 1],
 ];
 
+const dataTypes = ['Reported Deaths', 'Confirmed Cases'];
+
 Vue.component('graph', {
 
   props: ['graphData', 'day', 'resize'],
@@ -158,36 +160,17 @@ window.app = new Vue({
   el: '#root',
 
   mounted() {
-    this.pullData(this.selectedData, this.selectedRegion);
+    this.pullData(this.selectedData);
   },
 
   watch: {
-    selectedData() {
+    deaths() {
+      this.selectedData = this.deaths ? dataTypes[0] : dataTypes[1];
+
       if (!this.firstLoad) {
-        this.pullData(this.selectedData, this.selectedRegion, /*updateSelectedCountries*/ true);
+        this.pullData();
       }
-    },
-
-    selectedRegion() {
-      if (!this.firstLoad) {
-        this.pullData(this.selectedData, this.selectedRegion, /*updateSelectedCountries*/ false);
-      }
-    },
-
-    minDay() {
-      if (this.day < this.minDay) {
-        this.day = this.minDay;
-      }
-    },
-
-    'graphAttributes.mounted': function() {
-
-      if (this.graphAttributes.mounted && this.autoplay && this.minDay > 0) {
-        this.day = this.minDay;
-        this.play();
-        this.autoplay = false; // disable autoplay on first play
-      }
-    },
+    }
   },
 
   methods: {
@@ -217,26 +200,12 @@ window.app = new Vue({
       return Math.max.apply(Math, par);
     },
 
-    myMin() {
-      let par = [];
-      for (let i = 0; i < arguments.length; i++) {
-        if (!isNaN(arguments[i])) {
-          par.push(arguments[i]);
-        }
-      }
-      return Math.min.apply(Math, par);
-    },
+    pullData() {
 
-    pullData(selectedData) {
+      let url = this.deaths
+        ? 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv'
+        : 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv';
 
-      let url;
-      if (selectedData === 'Confirmed Cases') {
-        url = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv';
-      } else if (selectedData === 'Reported Deaths') {
-        url = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv';
-      } else {
-        return;
-      }
       Plotly.d3.csv(url, (data) => this.processData(data));
     },
 
@@ -270,7 +239,6 @@ window.app = new Vue({
     processData(data) {
       let dates = Object.keys(data[0]).slice(4);
       this.dates = dates;
-      this.day = this.dates.length;
 
       let grouped = this.groupByCountry(data, dates);
 
@@ -282,7 +250,7 @@ window.app = new Vue({
           arr.push(row[date]);
         }
 
-        let slope = arr.map((e, i, a) => e - a[i - this.lookbackTime]);
+        let slope = arr.map((e, i, a) => e - a[i - 7]);
         let region = row.region;
 
         const cases = arr.map(e => e >= this.minCasesInCountry ? e : NaN);
@@ -296,8 +264,6 @@ window.app = new Vue({
       }
 
       this.covidData = covidData.filter(e => e.maxCases > this.minCasesInCountry);
-      //this.countries = this.covidData.map(e => e.country).sort();
-
       this.firstLoad = false;
     },
 
@@ -310,21 +276,6 @@ window.app = new Vue({
       return new Date(Date.UTC(2000 + (+y), m - 1, d)).toISOString().slice(0, 10);
     },
 
-    dateToText(date) {
-      if (!date) {
-        return '';
-      }
-
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-      let [m, d] = date.split('/');
-      return monthNames[m - 1] + ' ' + d;
-    },
-
-    toggleHide() {
-      this.isHidden = !this.isHidden;
-    },
-
   },
 
   computed: {
@@ -333,34 +284,13 @@ window.app = new Vue({
       return this.covidData.filter(e => this.selectedCountries.includes(e.country));
     },
 
-    minDay() {
-      let minDay = this.myMin(...(this.filteredCovidData.map(e => e.slope.findIndex(f => f > 0)).filter(x => x !== -1)));
-      if (isFinite(minDay) && !isNaN(minDay)) {
-        return minDay + 1;
-      } else {
-        return -1;
-      }
-    },
-
-    regionType() {
-      switch (this.selectedRegion) {
-        case 'World':
-          return 'Countries';
-        case 'Australia':
-        case 'US':
-          return 'States / Territories';
-        case 'China':
-          return 'Provinces';
-        case 'Canada':
-          return 'Provinces';
-        default:
-          return 'Regions';
-      }
-    },
-
     layout() {
       return {
-        title: 'Trajectory of COVID-19 ' + this.selectedData + ' (' + this.formatDate(this.dates[this.day - 1]) + ')',
+        title: 'Trajectory of COVID-19 '
+          + this.selectedData
+          + ' ('
+          + this.formatDate(this.dates[this.dates.length - 1])
+          + ')',
         showlegend: false,
         autorange: false,
         xaxis: {
@@ -396,8 +326,8 @@ window.app = new Vue({
 
       // draws grey lines (line plot for each location)
       let trace1 = this.filteredCovidData.map((e, i) => ({
-        x: e.cases.slice(0, this.day),
-        y: e.slope.slice(0, this.day),
+        x: e.cases.slice(0, this.dates.length),
+        y: e.slope.slice(0, this.dates.length),
         name: e.country,
         text: this.dates.map(date => e.country + '<br>' + this.formatDate(date)),
         mode: showDailyMarkers ? 'lines+markers' : 'lines',
@@ -417,8 +347,8 @@ window.app = new Vue({
 
       // draws red dots (most recent data for each location)
       let trace2 = this.filteredCovidData.map((e, i) => ({
-        x: [e.cases[this.day - 1]],
-        y: [e.slope[this.day - 1]],
+        x: [e.cases[this.dates.length - 1]],
+        y: [e.slope[this.dates.length - 1]],
         text: e.country,
         name: e.country,
         mode: 'markers+text',
@@ -452,7 +382,6 @@ window.app = new Vue({
       return {
         uistate: { // graph is updated when uistate changes
           selectedData: this.selectedData,
-          selectedRegion: this.selectedRegion,
         },
         traces: this.traces,
         layout: this.layout,
@@ -495,16 +424,8 @@ window.app = new Vue({
   },
 
   data: {
-
-    dataTypes: ['Confirmed Cases', 'Reported Deaths'],
-
-    selectedData: 'Confirmed Cases',
-
-    selectedRegion: 'World',
-
-    day: 7,
-
-    lookbackTime: 7,
+    deaths: false,
+    selectedData: dataTypes[1],
 
     minCasesInCountry: 50,
 
@@ -512,13 +433,9 @@ window.app = new Vue({
 
     covidData: [],
 
-    countries: countriesOfInterest.map(c => c[0]),
+    countries: countriesOfInterest.map(c => c[0]).sort(),
 
     selectedCountries: countriesOfInterest.map(c => c[0]),
-
-    isHidden: true,
-
-    mySelect: '',
 
     firstLoad: true,
 
