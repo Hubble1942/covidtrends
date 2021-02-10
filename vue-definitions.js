@@ -720,21 +720,8 @@ window.app = new Vue({
       return Array.prototype.concat(...this.filteredCovidData.map(e => e.slope)).filter(e => !isNaN(e));
     },
 
-    logxrange() {
-      return [1, Math.ceil(Math.log10(1.5 * this.xmax))];
-    },
-
     linearxrange() {
-      return [-0.49 * Math.pow(10, Math.floor(Math.log10(this.xmax))), Math.round(1.2 * this.xmax)];
-    },
-
-    logyrange() {
-
-      if (this.ymin < 10) { // shift ymin on log scale if fewer than 10 cases
-        return [0, Math.ceil(Math.log10(1.5 * this.ymax))];
-      } else {
-        return [1, Math.ceil(Math.log10(1.5 * this.ymax))];
-      }
+      return [0, Math.round(1.2 * this.xmax)];
     },
 
     linearyrange() {
