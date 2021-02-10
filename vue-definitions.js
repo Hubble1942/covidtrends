@@ -192,36 +192,18 @@ window.app = new Vue({
 
     }
 
-    window.addEventListener('keydown', e => {
-
-      if ((e.key == ' ') && this.dates.length > 0) {
-        this.play();
-      }
-
-      else if ((e.key == '-' || e.key == '_') && this.dates.length > 0) {
-        this.paused = true;
-        this.day = Math.max(this.day - 1, this.minDay);
-      }
-
-      else if ((e.key == '+' || e.key == '=') && this.dates.length > 0) {
-        this.paused = true;
-        this.day = Math.min(this.day + 1, this.dates.length);
-      }
-
-    });
-
   },
 
   watch: {
     selectedData() {
       if (!this.firstLoad) {
-        this.pullData(this.selectedData, this.selectedRegion, /*updateSelectedCountries*/ false);
+        this.pullData(this.selectedData, this.selectedRegion, /*updateSelectedCountries*/ true);
       }
     },
 
     selectedRegion() {
       if (!this.firstLoad) {
-        this.pullData(this.selectedData, this.selectedRegion, /*updateSelectedCountries*/ true);
+        this.pullData(this.selectedData, this.selectedRegion, /*updateSelectedCountries*/ false);
       }
     },
 
@@ -458,44 +440,6 @@ window.app = new Vue({
 
       let [m, d] = date.split('/');
       return monthNames[m - 1] + ' ' + d;
-    },
-
-    // TODO: clean up play/pause logic
-    play() {
-      if (this.paused) {
-
-        if (this.day == this.dates.length) {
-          this.day = this.minDay;
-        }
-
-        this.paused = false;
-        setTimeout(this.increment, 200);
-
-      } else {
-        this.paused = true;
-      }
-
-    },
-
-    pause() {
-      if (!this.paused) {
-        this.paused = true;
-      }
-    },
-
-    increment() {
-
-      if (this.day == this.dates.length || this.minDay < 0) {
-        this.day = this.dates.length;
-        this.paused = true;
-      }
-      else if (this.day < this.dates.length) {
-        if (!this.paused) {
-          this.day++;
-          setTimeout(this.increment, 200);
-        }
-      }
-
     },
 
     selectAll() {
@@ -752,8 +696,6 @@ window.app = new Vue({
 
   data: {
 
-    paused: true,
-
     dataTypes: ['Confirmed Cases', 'Reported Deaths'],
 
     selectedData: 'Confirmed Cases',
@@ -783,8 +725,6 @@ window.app = new Vue({
     isHidden: true,
 
     mySelect: '',
-
-    autoplay: true,
 
     firstLoad: true,
 

@@ -66,23 +66,6 @@
 
         <graph v-if="covidData.length > 0 && countries.some(country => selectedCountries.includes(country))" :graph-data="graphData" :day="day" :resize="isHidden" v-bind.sync="graphAttributes"></graph>
 
-        <div v-if="covidData.length > 0 && countries.some(country => selectedCountries.includes(country))" class="nav">
-
-          <div class="navelement">
-            <img v-show="paused" @click="play" src="icons/play.svg" alt="Play" style="width: 3rem;">
-            <img v-show="!paused" @click="play" src="icons/pause.svg" alt="Pause" style="width: 3rem;">
-          </div>
-
-          <div class="navelement">
-            <time class="h2" :datetime="formatDate(minDay > 0 ? dates[day - 1] : dates[dates.length - 1])">{{ formatDate(minDay > 0 ? dates[day - 1] : dates[dates.length - 1]) }}</time>
-          </div>
-
-          <div class="navelement slidercontainer">
-            <input v-if="dates.length > 7" type="range" :min="minDay > 0 ? minDay : dates.length" :max="dates.length" step="1" v-model="day" class="slider" @mousedown="pause" aria-label="Choose the current observation day">
-          </div>
-
-        </div>
-
         <div v-if="!firstLoad && covidData.length == 0" class="nodata"><span>Not enough data for these parameters.</span></div>
         <div v-if="!firstLoad && covidData.length != 0 && !countries.some(country => selectedCountries.includes(country))" class="nodata"><span>Please select some {{regionType.toLowerCase()}} to display.</span></div>
 
@@ -93,13 +76,13 @@
         <div>
           <h2>Customize</h2>
           <label for="selectedData">Select Parameter</label>
-          <select id="selectedData" v-model="selectedData" @mousedown="pause">
+          <select id="selectedData" v-model="selectedData">
             <option v-for="d in dataTypes" v-bind:value="d">
               {{ d }}
             </option>
           </select>
           <label for="selectedRegion">Select Region</label>
-          <select id="selectedRegion" v-model="selectedRegion" @mousedown="pause">
+          <select id="selectedRegion" v-model="selectedRegion">
             <option v-for="s in regions" v-bind:value="s">
               {{ s }}
             </option>
