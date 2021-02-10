@@ -80,17 +80,6 @@ Vue.component('graph', {
 
     },
 
-    calculateAngle() {
-      if (this.graphData.uistate.showTrendLine && this.graphData.uistate.doublingTime > 0) {
-        let element = this.$refs.graph.querySelector('.cartesianlayer').querySelector('.plot').querySelector('.scatterlayer').lastChild.querySelector('.lines').firstChild.getAttribute('d');
-        let pts = element.split('M').join(',').split('L').join(',').split(',').filter(e => e != '');
-        let angle = Math.atan2(pts[3] - pts[1], pts[2] - pts[0]);
-        return angle;
-      } else {
-        return NaN;
-      }
-    },
-
     emitGraphAttributes() {
       let graphOuterDiv = this.$refs.graph.querySelector('.main-svg').attributes;
       this.$emit('update:width', graphOuterDiv.width.nodeValue);
@@ -99,7 +88,6 @@ Vue.component('graph', {
       let graphInnerDiv = this.$refs.graph.querySelector('.xy').firstChild.attributes;
       this.$emit('update:innerWidth', graphInnerDiv.width.nodeValue);
       this.$emit('update:innerHeight', graphInnerDiv.height.nodeValue);
-      this.$emit('update:referenceLineAngle', this.calculateAngle());
     }
 
   },
@@ -130,8 +118,6 @@ Vue.component('graph', {
         }
 
         this.updateGraph();
-        this.$emit('update:referenceLineAngle', this.calculateAngle());
-
       }
 
     },
@@ -209,14 +195,6 @@ window.app = new Vue({
         this.selectedCountries = urlParameters.getAll('country').map(e => Object.keys(renames).includes(e) ? renames[e] : e);
       } else if (urlParameters.has('location')) {
         this.selectedCountries = urlParameters.getAll('location').map(e => Object.keys(renames).includes(e) ? renames[e] : e);
-      }
-
-      if (urlParameters.has('trendline')) {
-        let showTrendLine = urlParameters.get('trendline');
-        this.showTrendLine = (showTrendLine == 'true');
-      } else if (urlParameters.has('doublingtime')) {
-        let doublingTime = urlParameters.get('doublingtime');
-        this.doublingTime = doublingTime;
       }
 
       if (urlParameters.has('select')) {
@@ -576,14 +554,6 @@ window.app = new Vue({
       // since this rename came later, use the old name for URLs to avoid breaking existing URLs
       let renames = {'China (Mainland)': 'China'};
 
-      if (!this.showTrendLine) {
-        queryUrl.append('trendline', this.showTrendLine);
-      }
-
-      else if (this.doublingTime != 2) {
-        queryUrl.append('doublingtime', this.doublingTime);
-      }
-
       // check if no countries selected
       // edge case: since selectedCountries may be larger than the country list (e.g. when switching from Confirmed Cases to Deaths), we can't simply check if selectedCountries is empty
       // so instead we check if the countries list does not include any of the selected countries
@@ -618,11 +588,6 @@ window.app = new Vue({
 
     },
 
-    // reference line for exponential growth with a given doubling time
-    referenceLine(x) {
-      return x * (1 - Math.pow(2, -this.lookbackTime / this.doublingTime));
-    }
-
   },
 
   computed: {
@@ -656,29 +621,6 @@ window.app = new Vue({
       }
     },
 
-    annotations() {
-
-      return [{
-        visible: this.showTrendLine && this.doublingTime > 0,
-        x: this.xAnnotation,
-        y: this.yAnnotation,
-        xref: 'x',
-        yref: 'y',
-        xshift: -50 * Math.cos(this.graphAttributes.referenceLineAngle),
-        yshift: 50 * Math.sin(this.graphAttributes.referenceLineAngle),
-        text: this.doublingTime + ' Day Doubling Time<br>of ' + this.selectedData,
-        align: 'right',
-        showarrow: false,
-        textangle: this.graphAttributes.referenceLineAngle * 180 / Math.PI,
-        font: {
-          family: 'Open Sans, sans-serif',
-          color: 'black',
-          size: 14
-        },
-      }];
-
-    },
-
     layout() {
       return {
         title: 'Trajectory of ' + this.selectedRegion + ' COVID-19 ' + this.selectedData + ' (' + this.formatDate(this.dates[this.day - 1]) + ')',
@@ -707,8 +649,7 @@ window.app = new Vue({
           family: 'Open Sans, sans-serif',
           color: 'black',
           size: 14
-        },
-        annotations: this.annotations
+        }
       };
     },
 
@@ -754,29 +695,7 @@ window.app = new Vue({
 
       }));
 
-      if (this.showTrendLine && this.doublingTime > 0) {
-        let cases = [1, 10000000];
-
-        let trace3 = [{
-          x: cases,
-          y: cases.map(this.referenceLine),
-          mode: 'lines',
-          line: {
-            dash: 'dot',
-          },
-          marker: {
-            color: 'rgba(114, 27, 101, 0.7)'
-          },
-          hoverinfo: 'skip',
-        }];
-
-        // reference line must be last trace for annotation angle to work out
-        return [...trace1, ...trace2, ...trace3];
-
-      } else {
-        return [...trace1, ...trace2];
-      }
-
+      return [...trace1, ...trace2];
     },
 
     config() {
@@ -798,8 +717,6 @@ window.app = new Vue({
           selectedData: this.selectedData,
           selectedRegion: this.selectedRegion,
           selectedScale: this.selectedScale,
-          showTrendLine: this.showTrendLine,
-          doublingTime: this.doublingTime,
         },
         traces: this.traces,
         layout: this.layout,
@@ -932,10 +849,6 @@ window.app = new Vue({
 
     isHidden: true,
 
-    showTrendLine: true,
-
-    doublingTime: 2,
-
     mySelect: '',
 
     searchField: '',
@@ -950,7 +863,6 @@ window.app = new Vue({
       innerHeight: NaN,
       width: NaN,
       height: NaN,
-      referenceLineAngle: NaN
     },
 
   }
