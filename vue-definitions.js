@@ -156,17 +156,6 @@ window.app = new Vue({
 
       let urlParameters = new URLSearchParams(url[1]);
 
-      if (urlParameters.has('scale')) {
-
-        let myScale = urlParameters.get('scale').toLowerCase();
-
-        if (myScale == 'log') {
-          this.selectedScale = 'Logarithmic Scale';
-        } else if (myScale == 'linear') {
-          this.selectedScale = 'Linear Scale';
-        }
-      }
-
       if (urlParameters.has('data')) {
         let myData = urlParameters.get('data').toLowerCase();
         if (myData == 'cases') {
@@ -228,14 +217,12 @@ window.app = new Vue({
       if (!this.firstLoad) {
         this.pullData(this.selectedData, this.selectedRegion, /*updateSelectedCountries*/ false);
       }
-      this.searchField = '';
     },
 
     selectedRegion() {
       if (!this.firstLoad) {
         this.pullData(this.selectedData, this.selectedRegion, /*updateSelectedCountries*/ true);
       }
-      this.searchField = '';
     },
 
     minDay() {
@@ -252,11 +239,6 @@ window.app = new Vue({
         this.autoplay = false; // disable autoplay on first play
       }
     },
-
-    searchField() {
-      let debouncedSearch = this.debounce(this.search, 250, false);
-      debouncedSearch();
-    }
   },
 
   methods: {
@@ -417,7 +399,6 @@ window.app = new Vue({
 
       this.covidData = covidData.filter(e => e.maxCases > this.minCasesInCountry);
       this.countries = this.covidData.map(e => e.country).sort();
-      this.visibleCountries = this.countries;
       const topCountries = this.covidData.sort((a, b) => b.maxCases - a.maxCases).slice(0, 9).map(e => e.country);
       const notableCountries = ['China (Mainland)', 'India', 'US', // Top 3 by population
         'South Korea', 'Japan', 'Taiwan', 'Singapore', // Observed success so far
@@ -517,10 +498,6 @@ window.app = new Vue({
 
     },
 
-    search() {
-      this.visibleCountries = this.countries.filter(e => e.toLowerCase().includes(this.searchField.toLowerCase()));
-    },
-
     selectAll() {
       this.selectedCountries = this.countries;
       this.createURL();
@@ -538,10 +515,6 @@ window.app = new Vue({
     createURL() {
 
       let queryUrl = new URLSearchParams();
-
-      if (this.selectedScale == 'Linear Scale') {
-        queryUrl.append('scale', 'linear');
-      }
 
       if (this.selectedData == 'Reported Deaths') {
         queryUrl.append('data', 'deaths');
@@ -628,8 +601,8 @@ window.app = new Vue({
         autorange: false,
         xaxis: {
           title: 'Total ' + this.selectedData,
-          type: this.selectedScale == 'Logarithmic Scale' ? 'log' : 'linear',
-          range: this.selectedScale == 'Logarithmic Scale' ? this.logxrange : this.linearxrange,
+          type: 'linear',
+          range: this.linearxrange,
           titlefont: {
             size: 24,
             color: 'rgba(254, 52, 110,1)'
@@ -637,8 +610,8 @@ window.app = new Vue({
         },
         yaxis: {
           title: 'New ' + this.selectedData + ' (in the Past Week)',
-          type: this.selectedScale == 'Logarithmic Scale' ? 'log' : 'linear',
-          range: this.selectedScale == 'Logarithmic Scale' ? this.logyrange : this.linearyrange,
+          type: 'linear',
+          range: this.linearyrange,
           titlefont: {
             size: 24,
             color: 'rgba(254, 52, 110,1)'
@@ -716,7 +689,6 @@ window.app = new Vue({
         uistate: { // graph is updated when uistate changes
           selectedData: this.selectedData,
           selectedRegion: this.selectedRegion,
-          selectedScale: this.selectedScale,
         },
         traces: this.traces,
         layout: this.layout,
@@ -772,41 +744,21 @@ window.app = new Vue({
 
     xAnnotation() {
 
-      if (this.selectedScale == 'Logarithmic Scale') {
-        let x = this.logyrange[1] - Math.log10(this.referenceLine(1));
-        if (x < this.logxrange[1]) {
-          return x;
-        } else {
-          return this.logxrange[1];
-        }
-
+      let x = this.linearyrange[1] / this.referenceLine(1);
+      if (x < this.linearxrange[1]) {
+        return x;
       } else {
-        let x = this.linearyrange[1] / this.referenceLine(1);
-        if (x < this.linearxrange[1]) {
-          return x;
-        } else {
-          return this.linearxrange[1];
-        }
+        return this.linearxrange[1];
       }
     },
 
     yAnnotation() {
-      if (this.selectedScale == 'Logarithmic Scale') {
-        let x = this.logyrange[1] - Math.log10(this.referenceLine(1));
-        if (x < this.logxrange[1]) {
-          return this.logyrange[1];
-        } else {
-          return this.logxrange[1] + Math.log10(this.referenceLine(1));
-        }
+      let x = this.linearyrange[1] / this.referenceLine(1);
+      if (x < this.linearxrange[1]) {
+        return this.linearyrange[1];
       } else {
-        let x = this.linearyrange[1] / this.referenceLine(1);
-        if (x < this.linearxrange[1]) {
-          return this.linearyrange[1];
-        } else {
-          return this.linearxrange[1] * this.referenceLine(1);
-        }
+        return this.linearxrange[1] * this.referenceLine(1);
       }
-
     }
 
   },
@@ -829,10 +781,6 @@ window.app = new Vue({
 
     lookbackTime: 7,
 
-    scale: ['Logarithmic Scale', 'Linear Scale'],
-
-    selectedScale: 'Logarithmic Scale',
-
     minCasesInCountry: 50,
 
     dates: [],
@@ -841,8 +789,6 @@ window.app = new Vue({
 
     countries: [],
 
-    visibleCountries: [], // used for search
-
     selectedCountries: [], // used to manually select countries
 
     defaultCountries: [], // used for createURL default check
@@ -850,8 +796,6 @@ window.app = new Vue({
     isHidden: true,
 
     mySelect: '',
-
-    searchField: '',
 
     autoplay: true,
 
