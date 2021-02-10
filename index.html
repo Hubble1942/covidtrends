@@ -33,8 +33,8 @@
 
         <graph v-if="covidData.length > 0 && countries.some(country => selectedCountries.includes(country))" :graph-data="graphData" :day="day" :resize="isHidden" v-bind.sync="graphAttributes"></graph>
 
-        <div v-if="!firstLoad && covidData.length == 0" class="nodata"><span>Not enough data for these parameters.</span></div>
-        <div v-if="!firstLoad && covidData.length != 0 && !countries.some(country => selectedCountries.includes(country))" class="nodata"><span>Please select some {{regionType.toLowerCase()}} to display.</span></div>
+        <div v-if="!firstLoad && covidData.length === 0" class="nodata"><span>Not enough data for these parameters.</span></div>
+        <div v-if="!firstLoad && covidData.length !== 0 && !countries.some(country => selectedCountries.includes(country))" class="nodata"><span>Please select some {{regionType.toLowerCase()}} to display.</span></div>
 
       </main>
 

@@ -24,7 +24,7 @@ Vue.component('graph', {
 
       if (name) {
 
-        this.traceIndices = this.graphData.traces.map((e, i) => e.name == name ? i : -1).filter(e => e >= 0);
+        this.traceIndices = this.graphData.traces.map((e, i) => e.name === name ? i : -1).filter(e => e >= 0);
         let update = {'line': {color: 'rgba(254, 52, 110, 1)'}};
 
         for (let i of this.traceIndices) {
@@ -49,7 +49,7 @@ Vue.component('graph', {
       this.emitGraphAttributes();
 
       // if the user selects autorange, go back to the default range
-      if (data['xaxis.autorange'] == true || data['yaxis.autorange'] == true) {
+      if (data['xaxis.autorange'] === true || data['yaxis.autorange'] === true) {
         this.userSetRange = false;
         this.updateGraph();
       }
@@ -113,7 +113,7 @@ Vue.component('graph', {
       handler(data, oldData) {
 
         // if UI state changes, revert to auto range
-        if (JSON.stringify(data.uistate) != JSON.stringify(oldData.uistate)) {
+        if (JSON.stringify(data.uistate) !== JSON.stringify(oldData.uistate)) {
           this.userSetRange = false;
         }
 
@@ -158,9 +158,9 @@ window.app = new Vue({
 
       if (urlParameters.has('data')) {
         let myData = urlParameters.get('data').toLowerCase();
-        if (myData == 'cases') {
+        if (myData === 'cases') {
           this.selectedData = 'Confirmed Cases';
-        } else if (myData == 'deaths') {
+        } else if (myData === 'deaths') {
           this.selectedData = 'Reported Deaths';
         }
 
@@ -262,18 +262,18 @@ window.app = new Vue({
 
     pullData(selectedData, selectedRegion, updateSelectedCountries = true) {
 
-      if (selectedRegion != 'US') {
+      if (selectedRegion !== 'US') {
         let url;
-        if (selectedData == 'Confirmed Cases') {
+        if (selectedData === 'Confirmed Cases') {
           url = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv';
-        } else if (selectedData == 'Reported Deaths') {
+        } else if (selectedData === 'Reported Deaths') {
           url = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv';
         } else {
           return;
         }
         Plotly.d3.csv(url, (data) => this.processData(data, selectedRegion, updateSelectedCountries));
       } else { // selectedRegion == 'US'
-        const type = (selectedData == 'Reported Deaths') ? 'deaths' : 'cases';
+        const type = (selectedData === 'Reported Deaths') ? 'deaths' : 'cases';
         const url = 'https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv';
         Plotly.d3.csv(url, (data) => this.processData(this.preprocessNYTData(data, type), selectedRegion, updateSelectedCountries));
       }
@@ -293,14 +293,13 @@ window.app = new Vue({
 
         // filter data for this country (& exclude regions we're pulling to country level)
         // e.g. Mainland China numbers should not include Hong Kong & Macau, to avoid double counting
-        let countryData = data.filter(e => e['Country/Region'] == country)
+        let countryData = data.filter(e => e['Country/Region'] === country)
           .filter(e => !regionsToPullToCountryLevel.includes(e['Province/State']));
 
         const row = {region: country};
 
         for (let date of dates) {
-          let sum = countryData.map(e => parseInt(e[date]) || 0).reduce((a, b) => a + b);
-          row[date] = sum;
+          row[date] = countryData.map(e => parseInt(e[date]) || 0).reduce((a, b) => a + b);
         }
 
         grouped.push(row);
@@ -311,12 +310,12 @@ window.app = new Vue({
     },
 
     filterByCountry(data, dates, selectedRegion) {
-      return data.filter(e => e['Country/Region'] == selectedRegion)
+      return data.filter(e => e['Country/Region'] === selectedRegion)
         .map(e => Object.assign({}, e, {region: e['Province/State']}));
     },
 
     convertStateToCountry(data, dates, selectedRegion) {
-      return data.filter(e => e['Province/State'] == selectedRegion)
+      return data.filter(e => e['Province/State'] === selectedRegion)
         .map(e => Object.assign({}, e, {region: e['Province/State']}));
     },
 
@@ -329,7 +328,7 @@ window.app = new Vue({
 
       let grouped;
 
-      if (selectedRegion == 'World') {
+      if (selectedRegion === 'World') {
         grouped = this.groupByCountry(data, dates, regionsToPullToCountryLevel);
 
         // pull Hong Kong and Macau to Country level
@@ -395,9 +394,9 @@ window.app = new Vue({
 
         this.defaultCountries = this.selectedCountries; // Used for createURL default check
 
-        if (this.mySelect == 'all') {
+        if (this.mySelect === 'all') {
           this.selectedCountries = this.countries;
-        } else if (this.mySelect == 'none') {
+        } else if (this.mySelect === 'none') {
           this.selectedCountries = [];
         }
         this.mySelect = '';
@@ -460,11 +459,11 @@ window.app = new Vue({
 
       let queryUrl = new URLSearchParams();
 
-      if (this.selectedData == 'Reported Deaths') {
+      if (this.selectedData === 'Reported Deaths') {
         queryUrl.append('data', 'deaths');
       }
 
-      if (this.selectedRegion != 'World') {
+      if (this.selectedRegion !== 'World') {
         queryUrl.append('region', this.selectedRegion);
       }
 
@@ -497,7 +496,7 @@ window.app = new Vue({
         countriesToAppendToUrl.forEach(country => queryUrl.append('location', country));
       }
 
-      if (queryUrl.toString() == '') {
+      if (queryUrl.toString() === '') {
         window.history.replaceState({}, 'Covid Trends', location.pathname);
       } else {
         window.history.replaceState({}, 'Covid Trends', '?' + queryUrl.toString());
@@ -514,7 +513,7 @@ window.app = new Vue({
     },
 
     minDay() {
-      let minDay = this.myMin(...(this.filteredCovidData.map(e => e.slope.findIndex(f => f > 0)).filter(x => x != -1)));
+      let minDay = this.myMin(...(this.filteredCovidData.map(e => e.slope.findIndex(f => f > 0)).filter(x => x !== -1)));
       if (isFinite(minDay) && !isNaN(minDay)) {
         return minDay + 1;
       } else {
@@ -672,26 +671,6 @@ window.app = new Vue({
       let ymax = Math.max(...this.filteredSlope, 50);
       return [-Math.pow(10, Math.floor(Math.log10(ymax)) - 2), Math.round(1.05 * ymax)];
     },
-
-    xAnnotation() {
-
-      let x = this.linearyrange[1] / this.referenceLine(1);
-      if (x < this.linearxrange[1]) {
-        return x;
-      } else {
-        return this.linearxrange[1];
-      }
-    },
-
-    yAnnotation() {
-      let x = this.linearyrange[1] / this.referenceLine(1);
-      if (x < this.linearxrange[1]) {
-        return this.linearyrange[1];
-      } else {
-        return this.linearxrange[1] * this.referenceLine(1);
-      }
-    }
-
   },
 
   data: {
