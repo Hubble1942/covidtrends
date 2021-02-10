@@ -218,7 +218,7 @@ window.app = new Vue({
         let doublingTime = urlParameters.get('doublingtime');
         this.doublingTime = doublingTime;
       }
-      
+
       if (urlParameters.has('select')) {
         this.mySelect = urlParameters.get('select').toLowerCase();
       }
@@ -451,16 +451,16 @@ window.app = new Vue({
       // but do not overwrite selected locations if 1. selected locations loaded from URL. 2. We switch between confirmed cases <-> deaths
       if ((this.selectedCountries.length === 0 || !this.firstLoad) && updateSelectedCountries) {
         this.selectedCountries = this.countries.filter(e => topCountries.includes(e) || notableCountries.includes(e));
-        
+
         this.defaultCountries = this.selectedCountries; // Used for createURL default check
-        
+
         if (this.mySelect == 'all') {
           this.selectedCountries = this.countries;
         } else if (this.mySelect == 'none') {
           this.selectedCountries = [];
         }
         this.mySelect = '';
-      
+
       }
 
       this.firstLoad = false;
@@ -556,9 +556,9 @@ window.app = new Vue({
     toggleHide() {
       this.isHidden = !this.isHidden;
     },
-    
+
     createURL() {
-      
+
       let queryUrl = new URLSearchParams();
 
       if (this.selectedScale == 'Linear Scale') {
@@ -575,10 +575,10 @@ window.app = new Vue({
 
       // since this rename came later, use the old name for URLs to avoid breaking existing URLs
       let renames = {'China (Mainland)': 'China'};
-            
+
       if (!this.showTrendLine) {
         queryUrl.append('trendline', this.showTrendLine);
-      } 
+      }
 
       else if (this.doublingTime != 2) {
         queryUrl.append('doublingtime', this.doublingTime);
@@ -589,14 +589,14 @@ window.app = new Vue({
       // so instead we check if the countries list does not include any of the selected countries
       if (!this.countries.some(country => this.selectedCountries.includes(country))) {
         queryUrl.append('select', 'none');
-      } 
+      }
 
       // check if all countries selected
       // edge case: since selectedCountries may be larger than the country list (e.g. when switching from Confirmed Cases to Deaths), we can't simply compare array contents
       // so instead we check if the countries list is a proper subset of selectedCountries
       else if (this.countries.every(country => this.selectedCountries.includes(country))) {
         queryUrl.append('select', 'all');
-      } 
+      }
 
       // else check if selection is different from default countries
       else if (JSON.stringify(this.selectedCountries.sort()) !== JSON.stringify(this.defaultCountries)) {
@@ -743,7 +743,7 @@ window.app = new Vue({
         y: [e.slope[this.day - 1]],
         text: e.country,
         name: e.country,
-        mode: this.showLabels ? 'markers+text' : 'markers',
+        mode: 'markers+text',
         legendgroup: i,
         textposition: 'center right',
         marker: {
@@ -798,7 +798,6 @@ window.app = new Vue({
           selectedData: this.selectedData,
           selectedRegion: this.selectedRegion,
           selectedScale: this.selectedScale,
-          showLabels: this.showLabels,
           showTrendLine: this.showTrendLine,
           doublingTime: this.doublingTime,
         },
@@ -927,18 +926,16 @@ window.app = new Vue({
 
     visibleCountries: [], // used for search
 
-    selectedCountries: [], // used to manually select countries 
-    
+    selectedCountries: [], // used to manually select countries
+
     defaultCountries: [], // used for createURL default check
 
     isHidden: true,
 
-    showLabels: true,
-
     showTrendLine: true,
 
     doublingTime: 2,
-    
+
     mySelect: '',
 
     searchField: '',
