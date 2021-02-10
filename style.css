@@ -20,19 +20,16 @@ body {
 
 
 h1 {
-  margin:0px; /* was 20 px */
-  /*
-  text-align:center;*/
+  margin:0;
   font-weight:100;
   font-size:2rem;
 }
 
 h2,
 .h2 {
-  margin:0px;
-  font-weight:700;
+  font-weight: 700;
   font-size: 1.5rem;
-  margin-bottom:1rem;
+  margin: 0 0 1rem;
 }
 
 h3 {
@@ -290,4 +287,9 @@ select:first-child {
   align-content: center;
   justify-content: center;
   align-items: center;
+}
+
+li {
+  margin: 0.25em 0;
+  font-size: 1.25em;
 }
