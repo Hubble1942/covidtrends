@@ -1,18 +1,20 @@
 // custom graph component
 
 const countriesOfInterest = [
-  ['Austria', 1],
-  ['France', 1],
-  ['Germany', 1],
-  ['Israel', 1],
-  ['Italy', 1],
-  ['Spain', 1],
-  ['Sweden', 1],
-  ['Switzerland', 1],
-  ['United Kingdom', 1],
+  ['Austria', 8859000],
+  ['France', 67060000],
+  ['Germany', 83020000],
+  ['Israel', 9053000],
+  ['Italy', 60360000],
+  ['Spain', 46940000],
+  ['Sweden', 10230000],
+  ['Switzerland', 8545000],
+  ['United Kingdom', 66650000],
 ];
 
 const dataTypes = ['Reported Deaths', 'Confirmed Cases'];
+
+const normalize = (value, population) => value / population * 100000;
 
 Vue.component('graph', {
 
@@ -325,42 +327,49 @@ window.app = new Vue({
       let showDailyMarkers = this.filteredCovidData.length <= 2;
 
       // draws grey lines (line plot for each location)
-      let trace1 = this.filteredCovidData.map((e, i) => ({
-        x: e.cases.slice(0, this.dates.length),
-        y: e.slope.slice(0, this.dates.length),
-        name: e.country,
-        text: this.dates.map(date => e.country + '<br>' + this.formatDate(date)),
-        mode: showDailyMarkers ? 'lines+markers' : 'lines',
-        type: 'scatter',
-        legendgroup: i,
-        marker: {
-          size: 4,
-          color: 'rgba(0,0,0,0.15)'
-        },
-        line: {
-          color: 'rgba(0,0,0,0.15)'
-        },
-        hoverinfo: 'x+y+text',
-        hovertemplate: '%{text}<br>Total ' + this.selectedData + ': %{x:,}<br>Weekly ' + this.selectedData + ': %{y:,}<extra></extra>',
-      })
-      );
+      let trace1 = this.filteredCovidData.map((e, i) => {
+        let population = countriesOfInterest.find(c => c[0] === e.country)[1];
+        return {
+          x: e.cases.slice(0, this.dates.length).map(v => normalize(v, population)),
+          y: e.slope.slice(0, this.dates.length).map(v => normalize(v, population)),
+          name: e.country,
+          text: this.dates.map(date => e.country + '<br>' + this.formatDate(date)),
+          mode: showDailyMarkers ? 'lines+markers' : 'lines',
+          type: 'scatter',
+          legendgroup: i,
+          marker: {
+            size: 4,
+            color: 'rgba(0,0,0,0.15)'
+          },
+          line: {
+            color: 'rgba(0,0,0,0.15)'
+          },
+          hoverinfo: 'x+y+text',
+          hovertemplate:
+            '%{text}<br>Total ' + this.selectedData + ': %{x:,.0f}<br>Weekly ' + this.selectedData + ': %{y:,.0f}<extra></extra>',
+        };
+      });
 
       // draws red dots (most recent data for each location)
-      let trace2 = this.filteredCovidData.map((e, i) => ({
-        x: [e.cases[this.dates.length - 1]],
-        y: [e.slope[this.dates.length - 1]],
-        text: e.country,
-        name: e.country,
-        mode: 'markers+text',
-        legendgroup: i,
-        textposition: 'center right',
-        marker: {
-          size: 6,
-          color: 'rgba(254, 52, 110, 1)'
-        },
-        hovertemplate: '%{data.text}<br>Total ' + this.selectedData + ': %{x:,}<br>Weekly ' + this.selectedData + ': %{y:,}<extra></extra>',
+      let trace2 = this.filteredCovidData.map((e, i) => {
+        let population = countriesOfInterest.find(c => c[0] === e.country)[1];
+        return {
+          x: [e.cases[this.dates.length - 1]].map(v => normalize(v, population)),
+          y: [e.slope[this.dates.length - 1]].map(v => normalize(v, population)),
+          text: e.country,
+          name: e.country,
+          mode: 'markers+text',
+          legendgroup: i,
+          textposition: 'center right',
+          marker: {
+            size: 6,
+            color: 'rgba(254, 52, 110, 1)'
+          },
+          hovertemplate:
+            '%{data.text}<br>Total ' + this.selectedData + ': %{x:,.0f}<br>Weekly ' + this.selectedData + ': %{y:,.0f}<extra></extra>',
 
-      }));
+        };
+      });
 
       return [...trace1, ...trace2];
     },
@@ -414,11 +423,22 @@ window.app = new Vue({
     },
 
     linearxrange() {
-      return [0, Math.round(1.2 * this.xmax)];
+      let cases = Array.prototype.concat(...this.filteredCovidData.map(e => {
+        let population = countriesOfInterest.find(c => c[0] === e.country)[1];
+        return e.cases.filter(e => !isNaN(e)).map(v => normalize(v, population));
+      }));
+
+      let xmax = Math.max(...cases, 50);
+      return [0, Math.round(1.05 * xmax)];
     },
 
     linearyrange() {
-      let ymax = Math.max(...this.filteredSlope, 50);
+      let slope = Array.prototype.concat(...this.filteredCovidData.map(e => {
+        let population = countriesOfInterest.find(c => c[0] === e.country)[1];
+        return e.slope.filter(e => !isNaN(e)).map(v => normalize(v, population));
+      }));
+
+      let ymax = Math.max(...slope, 6);
       return [-Math.pow(10, Math.floor(Math.log10(ymax)) - 2), Math.round(1.05 * ymax)];
     },
   },
