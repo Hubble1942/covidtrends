@@ -172,6 +172,14 @@ window.app = new Vue({
       if (!this.firstLoad) {
         this.pullData();
       }
+    },
+
+    twoWeekSlope() {
+      this.slopeDays = this.twoWeekSlope ? 14 : 7;
+
+      if (!this.firstLoad) {
+        this.pullData();
+      }
     }
   },
 
@@ -252,7 +260,7 @@ window.app = new Vue({
           arr.push(row[date]);
         }
 
-        let slope = arr.map((e, i, a) => e - a[i - 7]);
+        let slope = arr.map((e, i, a) => e - a[i - this.slopeDays]);
         let region = row.region;
 
         const cases = arr.map(e => e >= this.minCasesInCountry ? e : NaN);
@@ -346,7 +354,10 @@ window.app = new Vue({
           },
           hoverinfo: 'x+y+text',
           hovertemplate:
-            '%{text}<br>Total ' + this.selectedData + ': %{x:,.0f}<br>Weekly ' + this.selectedData + ': %{y:,.0f}<extra></extra>',
+            '%{text}<br>Total '
+            + ': %{x:.0f} / 100\'000<br>'
+            + `${this.slopeDays}-Days `
+            + ': %{y:.0f} / 100\'000<extra></extra>',
         };
       });
 
@@ -366,8 +377,10 @@ window.app = new Vue({
             color: 'rgba(254, 52, 110, 1)'
           },
           hovertemplate:
-            '%{data.text}<br>Total ' + this.selectedData + ': %{x:,.0f}<br>Weekly ' + this.selectedData + ': %{y:,.0f}<extra></extra>',
-
+            '<br>Total '
+            + ': %{x:.0f} / 100\'000<br>'
+            + `${this.slopeDays}-Days `
+            + ': %{y:.0f} / 100\'000<extra></extra>',
         };
       });
 
@@ -398,30 +411,6 @@ window.app = new Vue({
       };
     },
 
-    xmax() {
-      return Math.max(...this.filteredCases, 50);
-    },
-
-    xmin() {
-      return Math.min(...this.filteredCases, 50);
-    },
-
-    ymax() {
-      return Math.max(...this.filteredSlope, 50);
-    },
-
-    ymin() {
-      return Math.min(...this.filteredSlope);
-    },
-
-    filteredCases() {
-      return Array.prototype.concat(...this.filteredCovidData.map(e => e.cases)).filter(e => !isNaN(e));
-    },
-
-    filteredSlope() {
-      return Array.prototype.concat(...this.filteredCovidData.map(e => e.slope)).filter(e => !isNaN(e));
-    },
-
     linearxrange() {
       let cases = Array.prototype.concat(...this.filteredCovidData.map(e => {
         let population = countriesOfInterest.find(c => c[0] === e.country)[1];
@@ -446,6 +435,9 @@ window.app = new Vue({
   data: {
     deaths: false,
     selectedData: dataTypes[1],
+
+    twoWeekSlope: true,
+    slopeDays: 14,
 
     minCasesInCountry: 50,
 
