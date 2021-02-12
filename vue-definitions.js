@@ -6,6 +6,7 @@ const countriesOfInterest = [
   ['Germany', 83020000],
   ['Israel', 9053000],
   ['Italy', 60360000],
+  ['Portugal', 10280000],
   ['Spain', 46940000],
   ['Sweden', 10230000],
   ['Switzerland', 8545000],
