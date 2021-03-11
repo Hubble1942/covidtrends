@@ -2,8 +2,10 @@
 
 const countriesOfInterest = [
   ['Austria', 8859000],
+  ['Czechia', 10650000],
   ['France', 67060000],
   ['Germany', 83020000],
+  ['Ireland', 4904000],
   ['Israel', 9053000],
   ['Italy', 60360000],
   ['Portugal', 10280000],
@@ -358,7 +360,7 @@ window.app = new Vue({
             '%{text}<br>Total '
             + ': %{x:.0f} / 100\'000<br>'
             + `${this.slopeDays}-Days `
-            + ': %{y:.0f} / 100\'000<extra></extra>',
+            + ': %{y:.3g} / 100\'000<extra></extra>',
         };
       });
 
@@ -381,7 +383,7 @@ window.app = new Vue({
             '<br>Total '
             + ': %{x:.0f} / 100\'000<br>'
             + `${this.slopeDays}-Days `
-            + ': %{y:.0f} / 100\'000<extra></extra>',
+            + ': %{y:.3g} / 100\'000<extra></extra>',
         };
       });
 
